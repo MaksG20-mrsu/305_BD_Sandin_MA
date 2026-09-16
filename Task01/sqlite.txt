@@ -1,0 +1,2 @@
+Версия SQLite: 3.51.0
+Доступные режимы вывода: column, csv, html, insert, line, list, qbox, quote, tabs, tcl
