@@ -5,7 +5,7 @@ sqlite3 movies_rating.db < db_init.sql
 
 echo "1. Составить список фильмов, имеющих хотя бы одну оценку. Список фильмов отсортировать по году выпуска и по названиям. В списке оставить первые 10 фильмов."
 echo --------------------------------------------------
-sqlite3 movies_rating.db -box -echo "SELECT m.id, m.title, substr(m.title, -5, 4) AS year FROM movies m WHERE m.id IN (SELECT DISTINCT movie_id FROM ratings) ORDER BY year ASC, m.title ASC LIMIT 10;"
+sqlite3 movies_rating.db -box -echo "SELECT m.id, m.title, CAST(substr(m.title, -5, 4) AS INTEGER) AS year FROM movies m WHERE m.id IN (SELECT DISTINCT movie_id FROM ratings) AND m.title GLOB '*([0-9][0-9][0-9][0-9])' ORDER BY year ASC, m.title ASC LIMIT 10;"
 echo " "
 
 echo "2. Вывести список всех пользователей, фамилии (не имена!) которых начинаются на букву 'A'. Полученный список отсортировать по дате регистрации. В списке оставить первых 5 пользователей."
@@ -15,22 +15,22 @@ echo " "
 
 echo "3. Написать запрос, возвращающий информацию о рейтингах в более читаемом формате: имя и фамилия эксперта, название фильма, год выпуска, оценка и дата оценки в формате ГГГГ-ММ-ДД. Отсортировать данные по имени эксперта, затем названию фильма и оценке. В списке оставить первые 50 записей."
 echo --------------------------------------------------
-sqlite3 movies_rating.db -box -echo "SELECT u.name, m.title, substr(m.title, -5, 4) AS year, r.rating, date(r.timestamp, 'unixepoch') AS rating_date FROM users u JOIN ratings r ON u.id = r.user_id JOIN movies m ON m.id = r.movie_id ORDER BY u.name ASC, m.title ASC, r.rating ASC LIMIT 50;"
+sqlite3 movies_rating.db -box -echo "SELECT u.name, m.title, CAST(substr(m.title, -5, 4) AS INTEGER) AS year, r.rating, date(r.timestamp, 'unixepoch') AS rating_date FROM users u JOIN ratings r ON u.id = r.user_id JOIN movies m ON m.id = r.movie_id WHERE m.title GLOB '*([0-9][0-9][0-9][0-9])' ORDER BY u.name ASC, m.title ASC, r.rating ASC LIMIT 50;"
 echo " "
 
 echo "4. Вывести список фильмов с указанием тегов, которые были им присвоены пользователями. Сортировать по году выпуска, затем по названию фильма, затем по тегу. В списке оставить первые 40 записей."
 echo --------------------------------------------------
-sqlite3 movies_rating.db -box -echo "SELECT m.title, substr(m.title, -5, 4) AS year, t.tag FROM movies m JOIN tags t ON m.id = t.movie_id ORDER BY year ASC, m.title ASC, t.tag ASC LIMIT 40;"
+sqlite3 movies_rating.db -box -echo "SELECT m.title, CAST(substr(m.title, -5, 4) AS INTEGER) AS year, t.tag FROM movies m JOIN tags t ON m.id = t.movie_id WHERE m.title GLOB '*([0-9][0-9][0-9][0-9])' ORDER BY year ASC, m.title ASC, t.tag ASC LIMIT 40;"
 echo " "
 
 echo "5. Вывести список самых свежих фильмов. В список должны войти все фильмы последнего года выпуска, имеющиеся в базе данных. Запрос должен быть универсальным, не зависящим от исходных данных."
 echo --------------------------------------------------
-sqlite3 movies_rating.db -box -echo "SELECT * FROM movies WHERE substr(title, -5, 4) = (SELECT MAX(substr(title, -5, 4)) FROM movies);"
+sqlite3 movies_rating.db -box -echo "SELECT * FROM movies WHERE substr(title, -5, 4) = (SELECT MAX(substr(title, -5, 4)) FROM movies WHERE title GLOB '*([0-9][0-9][0-9][0-9])') AND title GLOB '*([0-9][0-9][0-9][0-9])';"
 echo " "
 
 echo "6. Найти все комедии, выпущенные после 2000 года, которые понравились мужчинам (оценка не ниже 4.5). Для каждого фильма вывести название, год выпуска и количество таких оценок. Результат отсортировать по году выпуска и названию фильма."
 echo --------------------------------------------------
-sqlite3 movies_rating.db -box -echo "SELECT m.title, substr(m.title, -5, 4) AS year, COUNT(r.rating) AS rating_count FROM movies m JOIN ratings r ON m.id = r.movie_id JOIN users u ON u.id = r.user_id WHERE m.genres LIKE '%Comedy%' AND CAST(substr(m.title, -5, 4) AS INTEGER) > 2000 AND u.gender = 'male' AND r.rating >= 4.5 GROUP BY m.id, m.title ORDER BY year ASC, m.title ASC;"
+sqlite3 movies_rating.db -box -echo "SELECT m.title, CAST(substr(m.title, -5, 4) AS INTEGER) AS year, COUNT(r.rating) AS rating_count FROM movies m JOIN ratings r ON m.id = r.movie_id JOIN users u ON u.id = r.user_id WHERE m.genres LIKE '%Comedy%' AND CAST(substr(m.title, -5, 4) AS INTEGER) > 2000 AND u.gender = 'male' AND r.rating >= 4.5 AND m.title GLOB '*([0-9][0-9][0-9][0-9])' GROUP BY m.id, m.title ORDER BY year ASC, m.title ASC;"
 echo " "
 
 echo "7. Провести анализ занятий (профессий) пользователей - вывести количество пользователей для каждого рода занятий. Найти самую распространенную и самую редкую профессию."
